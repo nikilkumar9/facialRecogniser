@@ -6,7 +6,7 @@ import numpy
 from matplotlib import pyplot as plt
 import time
 
-db_path = '/Users/NickKumar/EE_training/face_db'
+db_path = '/Users/NickKumar/Desktop/facialRecognition/face_db'
 file_names = os.listdir(db_path)
 
 # Creating a list of the names/titles of known faces (array known_face_names)
@@ -31,47 +31,44 @@ print(known_faces_names)
 
 # Turn on Video Camera / Web Cam
 vs = cv2.VideoCapture(0)
-time.sleep(2)
+time.sleep(1)
 
+program_run = True
 while True:
-    face, frame = vs.read()
-    small_frame = cv2.resize(frame, (0,0), fx=1/4, fy=1/4)
-    
-    # Create a list of face encodings from each frame
-    face_locations = fr.api.face_locations(small_frame)
-    frame_face_encodings = fr.api.face_encodings(small_frame)
+    if (program_run): # Search for faces in every other frame for increased speed
+        face, frame = vs.read()
+        small_frame = cv2.resize(frame, (0,0), fx=1/5, fy=1/5)
+        
+        # Create a list of face encodings from each frame
+        face_locations = fr.api.face_locations(small_frame)
+        frame_face_encodings = fr.api.face_encodings(small_frame)
 
-    print(len(face_locations))
-    print('')
-    print(len(frame_face_encodings))
+        for i, frame_face_encoding in enumerate(frame_face_encodings):
+            matches = fr.api.compare_faces(known_face_encodings, frame_face_encoding, tolerance = 0.6) # Return a list of matches faces if True.
 
-    for i, frame_face_encoding in enumerate(frame_face_encodings):
-        matches = fr.api.compare_faces(known_face_encodings, frame_face_encoding, tolerance = 0.6) # Return a list of matches faces if True.
+            if True in matches:
+                index = matches.index(True) # Finding the first true comparison of a known face
+                name = known_faces_names[index]
+            else:
+                name = "Unknown Person"
 
-        if True in matches:
-            index = matches.index(True)
-            name = known_faces_names[index] 
-        else:
-            name = "Unknown Person"
+        # For each face detected in given frame, compare the faces with the encodings of known faces to check if same person.
+            top, right, bottom, left = face_locations[i]
+            top *= 5
+            right *= 5
+            bottom *= 5
+            left *= 5
+            cv2.rectangle(frame, (left,top), (right,bottom), (0, 255, 0), 2,cv2.LINE_AA)
+            cv2.putText(frame, name, (left , bottom + 30), cv2.FONT_HERSHEY_DUPLEX, 1, (0, 255, 0), 3)
+        
+        cv2.imshow('Frame', frame)
 
-    # For each face detected in given frame, compare the faces with the encodings of known faces to check if same person.
-    top, right, bottom, left = face_locations[i]
-    top *= 4
-    right *= 4
-    bottom *= 4
-    left *= 4
-    cv2.rectangle(frame, (left,top), (right,bottom), (0, 255, 0), 2,cv2.LINE_AA)
-    cv2.putText(frame, name, (left , bottom + 30), cv2.FONT_HERSHEY_DUPLEX, 1, (0, 255, 0), 3)
-    
-    cv2.imshow('Frame', frame)
+    program_run = not program_run
 
-    if frame is None:
-        print('Frame is none.')
-        break
-    
     key = cv2.waitKey(1)
     if key == ord('q'):
         break
 
-cap.release()
+
+vs.release()
 cv2.destroyAllWindows()
