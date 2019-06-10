@@ -6,7 +6,7 @@ import numpy
 from matplotlib import pyplot as plt
 import time
 
-db_path = '/Users/NickKumar/Desktop/facialRecognition/face_db'
+db_path = '/Users/NickKumar/facialRecognition/face_db'
 file_names = os.listdir(db_path)
 
 # Creating a list of the names/titles of known faces (array known_face_names)
